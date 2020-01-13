@@ -31,12 +31,12 @@ To implement `PlaceOrder`, copy the method with that name from `Index.razor` int
     {
         var newOrderId = await HttpClient.PostJsonAsync<int>("orders", OrderState.Order);
         OrderState.ResetOrder();
-        UriHelper.NavigateTo($"myorders/{newOrderId}");
+        NavigationManager.NavigateTo($"myorders/{newOrderId}");
     }
 }
 ```
 
-As usual, you'll need to `@inject` values for `OrderState`, `HttpClient`, and `UriHelper` so that it can compile, just like you did in `Index.razor`.
+As usual, you'll need to `@inject` values for `OrderState`, `HttpClient`, and `NavigationManager` so that it can compile, just like you did in `Index.razor`.
 
 Next, let's bring customers here when they try to submit orders. Back in `Index.razor`, make sure you've deleted the `PlaceOrder` method, and then change the order submission button into a regular HTML link to the `/checkout` URL, i.e.:
 
@@ -134,6 +134,8 @@ Your checkout screen now asks for a delivery address:
 If you submit an order now, any address data that you entered will actually be saved in the database with the order, because it's all part of the `Order` object that gets serialized and sent to the server.
 
 If you're really keen to verify the data gets saved, consider downloading a tool such as [DB Browser for SQLite](https://sqlitebrowser.org/) to inspect the contents of your `pizza.db` file. But you don't strictly need to do this.
+
+Alternatively, set a breakpoint inside `BlazingPizza.Server`'s `OrderController.PlaceOrder` method, and use the debugger to inspect the incoming `Order` object. Here you should be able to see the backend server receive the address data you typed in.
 
 ## Adding server-side validation
 
@@ -239,7 +241,7 @@ If you ran your application now, you could still submit a blank form (and the se
 Next, instead of triggering `PlaceOrder` directly from the button, you need to trigger it from the `EditForm`. Add the following `OnValidSubmit` attribute onto the `EditForm`:
 
 ```html
-<EditForm Model="OrderState.Order" OnValidSubmit="PlaceOrder">
+<EditForm Model="OrderState.Order.DeliveryAddress" OnValidSubmit="PlaceOrder">
 ```
 
 As you can probably guess, the `<button>` no longer triggers `PlaceOrder` directly. Instead, the button just asks the form to be submitted. And then the form decides whether or not it's valid, and if it is, *then* it will call `PlaceOrder`.
